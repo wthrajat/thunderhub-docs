@@ -1,25 +1,25 @@
 {
   "name": "thunderhub-docs",
-  "description": "Manage and monitor your lightning network node right inside your browser",
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "format": "npx prettier --write .",
-    "prepare": "husky install",
-    "lint-staged": "lint-staged",
-    "lint": "next lint"
+  "description": "Documentation for ThunderHub - a tool to monitor and manage your lightning network node right inside your browser",
+  "homepage": "https://thunderhub.io/",
+  "bugs": {
+    "url": "https://github.com/apotdevin/thunderhub-docs/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/apotdevin/thunderhub-docs.git"
   },
-  "author": "Anthony Potdevin <thunderhub@protonmail.com>",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/apotdevin/thunderhub-docs/issues"
+  "author": "Anthony Potdevin <thunderhub@protonmail.com>",
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "format": "npx prettier --write .",
+    "lint": "next lint",
+    "lint-staged": "lint-staged",
+    "prepare": "husky install",
+    "start": "next start"
   },
-  "homepage": "https://thunderhub.io/",
   "dependencies": {
     "next": "^13.0.6",
     "nextra": "latest",

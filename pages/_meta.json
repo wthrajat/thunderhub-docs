@@ -2,6 +2,7 @@
   "index": "👋 Intro",
   "setup": "🛠️ Setup",
   "installation": "🌩️ Installation",
+  "litd": "⚡ litd Setup",
   "website": {
     "title": "ThunderHub.io ↗",
     "type": "page",
