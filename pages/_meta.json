@@ -2,6 +2,7 @@
   "index": "👋 Intro",
   "setup": "🛠️ Setup",
   "installation": "🌩️ Installation",
+  "litd": "⚡ Lightning Terminal (LiTD) Setup",
   "website": {
     "title": "ThunderHub.io ↗",
     "type": "page",
