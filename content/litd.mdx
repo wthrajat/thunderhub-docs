@@ -1,30 +1,28 @@
 import { Callout, Steps, Tabs } from 'nextra/components';
 
-# **Lightning Terminal (litd) Setup**
+# Lightning Terminal (litd)
 
-[Lightning Terminal (litd)](https://github.com/lightninglabs/lightning-terminal) is an all-in-one daemon by Lightning Labs that bundles LND, Loop, Pool, Faraday, and Taproot Assets (`tapd`) into a single process with a web UI. ThunderHub supports litd as a backend, letting you manage your node through ThunderHub while keeping litd as the underlying daemon.
+[Lightning Terminal (litd)](https://github.com/lightninglabs/lightning-terminal) is an all-in-one daemon by Lightning Labs that bundles LND, Loop, Pool, Faraday, and Taproot Assets (`tapd`) into a single process. ThunderHub supports litd as a backend, connecting to its embedded LND gRPC endpoint to provide full node management along with Taproot Assets support.
 
 <Callout type="info">
-  **litd vs standalone LND** — If you're running litd, ThunderHub connects to
-  its embedded LND gRPC endpoint just like with a standalone LND node. The
-  additional litd services (Taproot Assets, Loop, Pool) are accessed through its
-  own UI at `https://your-node:8443`.
+  ThunderHub connects to litd's embedded LND gRPC endpoint (default port
+  `10009`), the same way it connects to a standalone LND node. The additional
+  litd services (Loop, Pool, Taproot Assets) are available through the litd UI
+  at `https://your-node:8443`.
 </Callout>
 
 ## Prerequisites
 
-- Docker installed ([Get Docker](https://docs.docker.com/get-docker/))
-- A running **litd** node (mainnet/testnet) — or follow the dev environment section below to spin one up locally
+- [Docker](https://docs.docker.com/get-docker/) installed
+- A running litd node (mainnet or testnet), or follow the [Developer Environment](#developer-environment) section to create one locally
 
 ---
 
-## Connecting ThunderHub to an Existing litd Node
+## Connecting to an Existing litd Node
 
-This is the most common use case: you already run litd on your server and want ThunderHub to manage it.
+### 1. Locate Your Credentials
 
-### 1. Locate Your litd Credentials
-
-litd stores credentials in `~/.lit/` by default. You'll need:
+litd stores its TLS certificate in `~/.lit/` by default. The LND macaroon is in the standard LND data directory:
 
 | File           | Default Path                                       | Purpose                           |
 | -------------- | -------------------------------------------------- | --------------------------------- |
@@ -32,33 +30,31 @@ litd stores credentials in `~/.lit/` by default. You'll need:
 | Admin macaroon | `~/.lnd/data/chain/bitcoin/mainnet/admin.macaroon` | Authorizes ThunderHub actions     |
 
 <Callout type="warning">
-  The macaroon for LND connections comes from the **LND** data directory
-  (`~/.lnd`), not from `~/.lit`. litd embeds LND and its macaroons are written
-  to the standard LND paths.
+  The admin macaroon comes from the **LND** data directory (`~/.lnd`), not from
+  `~/.lit`. litd embeds LND, and macaroons are written to the standard LND
+  paths.
 </Callout>
 
-### 2. Create a ThunderHub Config File
+### 2. Create a Config File
 
-Create a `thubConfig.yaml` file pointing to your litd node's LND endpoint:
+Create a `thubConfig.yaml` pointing to litd's LND gRPC endpoint:
 
 ```yaml copy
 masterPassword: 'your-secure-password'
 accounts:
   - name: 'My Node'
-    serverUrl: '127.0.0.1:10009' # litd's LND gRPC port
-    macaroonPath: '/lnd/admin.macaroon' # mapped in docker volume
-    certificatePath: '/lnd/tls.cert' # mapped in docker volume
+    serverUrl: '127.0.0.1:10009'
+    macaroonPath: '/lnd/admin.macaroon'
+    certificatePath: '/lnd/tls.cert'
 ```
 
 <Callout type="info">
-  If litd is running on the same machine, the `serverUrl` should be
-  `host.docker.internal:10009` when running ThunderHub in Docker on Mac/Windows,
-  or your machine's LAN IP on Linux.
+  When running ThunderHub in Docker on the same machine as litd, use
+  `host.docker.internal:10009` as the `serverUrl` on macOS and Windows, or your
+  machine's LAN IP on Linux.
 </Callout>
 
-### 3. Run ThunderHub with Docker
-
-Pull the latest ThunderHub image and run it with your litd credentials mounted in:
+### 3. Run ThunderHub
 
 ```bash copy
 docker run -d \
@@ -67,24 +63,19 @@ docker run -d \
   -e ACCOUNT_CONFIG_PATH=/data/thubConfig.yaml \
   -v /path/to/thubConfig.yaml:/data/thubConfig.yaml:ro \
   -v /path/to/.lnd:/lnd:ro \
-  apotdevin/thunderhub:v0.15.5
+  apotdevin/thunderhub:latest
 ```
 
-Replace:
+Replace `/path/to/thubConfig.yaml` and `/path/to/.lnd` with the actual paths on your system.
 
-- `/path/to/thubConfig.yaml` — absolute path to the config you created above
-- `/path/to/.lnd` — your LND data directory (e.g. `~/.lnd` for stock litd, or `/home/umbrel/umbrel/app-data/lightning/data/lnd` on Umbrel)
+Open `http://localhost:3000` and log in with the `masterPassword` from your config file.
 
-Open `http://localhost:3000` and log in using the `masterPassword` from your config.
-
-### Using Docker Compose
-
-For a more portable setup, create a `docker-compose.yml`:
+### Docker Compose
 
 ```yaml copy
 services:
   thunderhub:
-    image: apotdevin/thunderhub:v0.15.5
+    image: apotdevin/thunderhub:latest
     restart: unless-stopped
     ports:
       - '3000:3000'
@@ -92,11 +83,9 @@ services:
       - ACCOUNT_CONFIG_PATH=/data/thubConfig.yaml
     volumes:
       - ./thubConfig.yaml:/data/thubConfig.yaml:ro
-      - /path/to/.lnd:/lnd:ro # your LND data directory
-      - /path/to/.lit:/lit:ro # your litd data directory (for tls.cert if different)
+      - /path/to/.lnd:/lnd:ro
+      - /path/to/.lit:/lit:ro
 ```
-
-Then start it:
 
 ```bash copy
 docker compose up -d
@@ -106,74 +95,64 @@ docker compose up -d
 
 ---
 
-## Developer Environment (Full Local Stack)
+## Developer Environment
 
-This section is for **ThunderHub contributors** or anyone who wants to run a complete local regtest network with litd + ThunderHub for development and testing.
+This section is for contributors or anyone who wants a local regtest network with litd and ThunderHub for development and testing.
 
 <Callout type="warning">
-  This setup builds ThunderHub from **source code**. You need to clone the
-  ThunderHub repository. This is **not** needed to simply use ThunderHub — use
-  the Docker image approach above instead.
+  This builds ThunderHub from source. Clone the [ThunderHub
+  repository](https://github.com/apotdevin/thunderhub) first. For normal usage,
+  use the Docker image approach above.
 </Callout>
 
-### What Gets Spun Up
-
-The dev environment uses Docker Compose to run:
+### Services
 
 | Service            | Port(s)           | Description                         |
 | ------------------ | ----------------- | ----------------------------------- |
 | `bitcoind`         | 18443             | Bitcoin Core in regtest mode        |
 | `litd-alice`       | 8443, 10009, 9735 | Alice's litd node (public universe) |
 | `litd-bob`         | 8444, 10010, 9736 | Bob's litd node                     |
-| `thunderhub-alice` | 3000              | ThunderHub pointing at Alice        |
-| `thunderhub-bob`   | 3001              | ThunderHub pointing at Bob          |
+| `thunderhub-alice` | 3000              | ThunderHub for Alice                |
+| `thunderhub-bob`   | 3001              | ThunderHub for Bob                  |
 
-Alice is configured with `--taproot-assets.universe.public-access=rw`, making her universe accessible for asset syncing.
+Alice is configured with `--taproot-assets.universe.public-access=rw` for asset universe syncing.
 
 <Steps>
 
-### Clone the ThunderHub Repository
+### Clone and Start
 
 ```bash copy
 git clone https://github.com/apotdevin/thunderhub.git
-cd thunderhub
-```
-
-### Start the Full Stack
-
-```bash copy
-cd docker/litd
+cd thunderhub/docker/litd
 docker compose up --build
 ```
 
-Wait for both litd nodes to finish initializing (this can take 1–2 minutes on first run). You'll see `getinfo` succeed in the logs.
+Wait for both litd nodes to finish initializing (1-2 minutes on first run).
 
-### Access the UIs
+### Access the Interfaces
 
 | Interface        | URL                    | Password           |
 | ---------------- | ---------------------- | ------------------ |
 | ThunderHub Alice | http://localhost:3000  | `thunderhub`       |
 | ThunderHub Bob   | http://localhost:3001  | `thunderhub`       |
-| litd Alice UI    | https://localhost:8443 | `testpassword123!` |
-| litd Bob UI      | https://localhost:8444 | `testpassword123!` |
+| litd Alice       | https://localhost:8443 | `testpassword123!` |
+| litd Bob         | https://localhost:8444 | `testpassword123!` |
 
 <Callout type="info">
-  The litd UI uses a self-signed certificate — your browser will show a security
-  warning. Proceed past it for local development.
+  The litd UI uses a self-signed certificate. Your browser will show a security
+  warning — proceed past it for local development.
 </Callout>
 
 ### Fund Wallets
 
-Mine some regtest blocks to fund each node's wallet:
-
 ```bash copy
-# Fund Alice (mine 6 blocks to her address)
+# Fund Alice
 docker compose exec bitcoind bitcoin-cli \
   -regtest -rpcuser=rpcuser -rpcpassword=rpcpassword \
   generatetoaddress 6 \
   $(docker compose exec litd-alice lncli --network=regtest newaddress p2wkh | jq -r '.address')
 
-# Fund Bob (mine 6 blocks to his address)
+# Fund Bob
 docker compose exec bitcoind bitcoin-cli \
   -regtest -rpcuser=rpcuser -rpcpassword=rpcpassword \
   generatetoaddress 6 \
@@ -189,12 +168,12 @@ BOB_PUBKEY=$(docker compose exec litd-bob lncli --network=regtest getinfo | jq -
 # Connect Alice to Bob
 docker compose exec litd-alice lncli --network=regtest connect ${BOB_PUBKEY}@litd-bob:9735
 
-# Open a 1M sat channel from Alice to Bob
+# Open a 1M sat channel
 docker compose exec litd-alice lncli --network=regtest openchannel \
   --node_key=${BOB_PUBKEY} \
   --local_amt=1000000
 
-# Confirm the channel (mine 6 blocks)
+# Confirm the channel
 docker compose exec bitcoind bitcoin-cli \
   -regtest -rpcuser=rpcuser -rpcpassword=rpcpassword \
   generatetoaddress 6 \
@@ -207,12 +186,12 @@ docker compose exec bitcoind bitcoin-cli \
 
 ## Taproot Assets Workflow
 
-With the dev environment running, you can test the full Taproot Assets workflow.
+With the developer environment running, you can test Taproot Assets end-to-end.
 
 ### Mint an Asset
 
 ```bash copy
-# Alice mints 1000 units of "Thunderbux"
+# Mint 1000 units of "Thunderbux"
 docker compose exec litd-alice tapcli \
   --tlscertpath=/root/.lit/tls.cert \
   --macaroonpath=/root/.lit/regtest/super.macaroon \
@@ -230,19 +209,19 @@ docker compose exec litd-alice tapcli \
   --rpcserver=localhost:8443 \
   assets mint finalize
 
-# Mine blocks to confirm the mint transaction
+# Confirm the mint transaction
 docker compose exec bitcoind bitcoin-cli \
   -regtest -rpcuser=rpcuser -rpcpassword=rpcpassword \
   generatetoaddress 6 \
   $(docker compose exec litd-alice lncli --network=regtest newaddress p2wkh | jq -r '.address')
 ```
 
-### Federate Universes (for Asset Transfers)
+### Federate Universes
 
-For Bob to receive assets from Alice, both nodes need to know about each other's universe:
+For Bob to receive assets from Alice, both nodes must know about each other's universe:
 
 ```bash copy
-# Add Alice's universe to Bob's federation
+# Add Alice's universe to Bob
 docker compose exec litd-bob tapcli \
   --tlscertpath=/root/.lit/tls.cert \
   --macaroonpath=/root/.lit/regtest/super.macaroon \
@@ -250,7 +229,7 @@ docker compose exec litd-bob tapcli \
   universe federation add \
   --universe_host=litd-alice:8443
 
-# Add Bob's universe to Alice's federation
+# Add Bob's universe to Alice
 docker compose exec litd-alice tapcli \
   --tlscertpath=/root/.lit/tls.cert \
   --macaroonpath=/root/.lit/regtest/super.macaroon \
@@ -264,30 +243,30 @@ docker compose exec litd-alice tapcli \
 ## Cleanup
 
 ```bash copy
-# Stop containers (data is preserved)
+# Stop containers (data preserved)
 docker compose down
 
-# Stop containers AND delete all chain/node data
+# Stop containers and delete all data
 docker compose down
 rm -rf data/
 ```
 
 ---
 
-## Common Issues
+## Troubleshooting
 
-### ThunderHub can't connect to litd
+### ThunderHub cannot connect to litd
 
-- Verify the `serverUrl` in `thubConfig.yaml` points to the LND gRPC port (`10009` by default), not the litd HTTPS port (`8443`).
-- Ensure the TLS cert and macaroon paths inside the container match the volume mounts.
-- On Linux, use your host machine's actual IP address instead of `host.docker.internal`.
+- Verify the `serverUrl` points to the LND gRPC port (`10009`), not the litd HTTPS port (`8443`).
+- Check that TLS cert and macaroon paths in the container match your volume mounts.
+- On Linux, use your host's actual IP address instead of `host.docker.internal`.
 
-### litd nodes take too long to start
+### litd nodes are slow to start
 
-- litd runs multiple sub-daemons. The first start can take 2–3 minutes while wallets are created.
-- Watch the logs: `docker compose logs -f litd-alice`
+- litd runs multiple sub-daemons. First startup can take 2-3 minutes while wallets are created.
+- Monitor progress with `docker compose logs -f litd-alice`.
 
 ### Browser certificate warning on litd UI
 
-- litd uses a self-signed TLS certificate. In a local dev environment, click "Advanced → Proceed" in your browser.
-- In production, put litd behind a reverse proxy with a valid certificate.
+- litd uses a self-signed TLS certificate. Click through the browser warning for local development.
+- In production, place litd behind a reverse proxy with a valid certificate.

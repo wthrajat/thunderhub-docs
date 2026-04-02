@@ -1,111 +1,140 @@
-# **Setup**
+import { Callout } from 'nextra/components';
 
-## Requirements
+# Configuration
 
-- NPM installed
-- Node installed (Version 18 or higher)
+ThunderHub is configured through environment variables. Create a `.env.local` file in the project root to set your values.
 
-## Config
+<Callout type="info">
+  If you started from the `.env` template, copy it to `.env.local` so your
+  settings are preserved across updates.
+</Callout>
 
-You can define some environment variables that ThunderHub can start with. To do this create a `.env.local` file in the root directory with the following parameters:
+## Environment Variables
 
-**Notice - If you use the `.env` template file and don't want it to be replaced after an update please duplicate and rename to `.env.local`**
+### Server
 
 ```bash copy
-# -----------
-# Server Configs
-# -----------
-LOG_LEVEL = 'error' | 'warn' | 'info' | 'http' | 'verbose' | 'debug' | 'silly' # Default: 'info'
-TOR_PROXY_SERVER='socks://127.0.0.1:9050' # Default: ''
-
-# -----------
-# Interface Configs
-# -----------
-THEME = 'dark' | 'light' | 'night' # Default: 'dark'
-CURRENCY = 'sat' | 'btc' | 'fiat' # Default: 'sat'
-
-# -----------
-# Privacy Configs
-# -----------
-FETCH_PRICES = true | false # Default: true
-FETCH_FEES = true | false # Default: true
-DISABLE_LINKS = true | false # Default: false
-DISABLE_LNMARKETS = true | false # Default: false
-NO_VERSION_CHECK = true | false # Default: false
+LOG_LEVEL='info'                       # 'error' | 'warn' | 'info' | 'http' | 'verbose' | 'debug' | 'silly'
+PORT=3000                              # Server port
+HOST='0.0.0.0'                         # Bind address
+BASE_PATH=''                           # URL prefix (e.g. '/thub')
+TOR_PROXY_SERVER=''                    # SOCKS proxy for outbound requests (e.g. 'socks://127.0.0.1:9050')
 ```
 
-### TOR Requests
-
-ThunderHub connects to different external services for example to fetch BOS scores, BTC/fiat prices and BTC blockchain fees. Normally they are done through clearnet but you can configure a TOR proxy server so that they are all proxied through TOR.
-
-You need to add the following parameter into your `.env` file with your TOR endpoint:
+### Interface
 
 ```bash copy
-TOR_PROXY_SERVER='socks://your.tor.endpoint' # i.e. 'socks://127.0.0.1:9050'
+THEME='dark'                           # 'dark' | 'light'
+CURRENCY='sat'                         # 'sat' | 'btc' | 'fiat'
 ```
 
-### SSO Account
-
-You can define an account to work with SSO cookie authentication by adding the following parameters in the `.env` file:
+### Privacy
 
 ```bash copy
-# -----------
-# SSO Account Configs
-# -----------
-COOKIE_PATH = '/path/to/cookie/file/.cookie' # i.e. '/data/.cookie'
-SSO_SERVER_URL = 'url and port to node' # i.e. '127.0.0.1:10009'
-SSO_CERT_PATH = '/path/to/tls/certificate' # i.e. '\lnd\alice\tls.cert'
-SSO_MACAROON_PATH = '/path/to/macaroon/folder' # i.e. '\lnd\alice\data\chain\bitcoin\regtest\'
-LOGOUT_URL = 'http://LogoutToThisUrl.com' # If not set it will logout to "/login"
+FETCH_PRICES=true                      # Fetch fiat prices from external API
+FETCH_FEES=true                        # Fetch on-chain fee estimates from Mempool.space
+DISABLE_LINKS=false                    # Hide external links (Amboss, block explorer)
+DISABLE_LNMARKETS=false                # Disable LnMarkets integration
+NO_VERSION_CHECK=false                 # Skip latest-version check from GitHub
 ```
 
-To login to this account you must add the cookie file content to the end of your ThunderHub url. For example:
+### Database (Optional)
+
+ThunderHub can optionally use a database for user accounts and team management. When enabled, users log in with email and password instead of (or in addition to) node credentials.
 
 ```bash copy
+DB_TYPE=''                             # 'sqlite' | 'postgres' | unset to disable
+DB_SQLITE_PATH='/path/to/thunderhub.db' # Path to SQLite file (when DB_TYPE='sqlite')
+DB_POSTGRES_URL=''                     # Connection URL (when DB_TYPE='postgres')
+```
+
+### Subscriptions
+
+Real-time updates can be selectively disabled if they cause issues or are not needed.
+
+```bash copy
+DISABLE_ALL_SUBS=false                 # Disable all real-time subscriptions
+DISABLE_INVOICE_SUB=false              # Disable invoice subscription
+DISABLE_PAYMENT_SUB=false              # Disable payment subscription
+DISABLE_FORWARD_SUB=false              # Disable forwarding subscription
+DISABLE_CHANNEL_SUB=false              # Disable channel subscription
+DISABLE_BACKUP_SUB=false               # Disable backup subscription
+```
+
+### External Services
+
+```bash copy
+MEMPOOL_URL=''                         # Custom Mempool.space API endpoint
+```
+
+---
+
+## Tor Proxy
+
+ThunderHub makes outbound requests to external services (fee estimates, fiat prices, version checks). To route these through Tor, set:
+
+```bash copy
+TOR_PROXY_SERVER='socks://127.0.0.1:9050'
+```
+
+---
+
+## SSO Authentication
+
+Single Sign-On allows authentication via a cookie file, commonly used by node platforms like BTCPay Server and Umbrel.
+
+```bash copy
+COOKIE_PATH='/path/to/cookie/file/.cookie'
+SSO_SERVER_URL='127.0.0.1:10009'
+SSO_CERT_PATH='/path/to/tls.cert'
+SSO_MACAROON_PATH='/path/to/macaroon/directory'
+SSO_NODE_TYPE='lnd'                    # 'lnd' | 'litd'
+LOGOUT_URL=''                          # Redirect URL after logout (defaults to /login)
+```
+
+To log in, append the cookie file contents to the URL:
+
+```
 http://localhost:3000/sso?token=[COOKIE]
 ```
 
-Replace `[COOKIE]` with the contents of the `.cookie` file.
+### SSO Without Authentication
 
-### SSO Account without authentication
+<Callout type="error">
+  Only use this if ThunderHub is accessible **exclusively** on a local network
+  or through Tor. Enabling this on an internet-facing instance will expose your
+  node and funds.
+</Callout>
 
-You can DANGEROUSLY remove SSO authentication. This is useful for example if you plan on running ThunderHub **only** on your local network or through TOR.
-
-**DO NOT enable this option if your ThunderHub instance is available on the internet or your funds will probably be lost.**
-
-The configuration for a non authenticated SSO account would look like this:
+For local-only access, you can disable SSO authentication entirely:
 
 ```bash copy
-# -----------
-# SSO Account Configs
-# -----------
-SSO_SERVER_URL = 'url and port to node' # i.e. '127.0.0.1:10009'
-SSO_CERT_PATH = '/path/to/tls/certificate' # i.e. '\lnd\alice\tls.cert'
-SSO_MACAROON_PATH = '/path/to/macaroon/folder' # i.e. '\lnd\alice\data\chain\bitcoin\regtest\'
-DANGEROUS_NO_SSO_AUTH = 'true' # Default: false
+SSO_SERVER_URL='127.0.0.1:10009'
+SSO_CERT_PATH='/path/to/tls.cert'
+SSO_MACAROON_PATH='/path/to/macaroon/directory'
+DANGEROUS_NO_SSO_AUTH='true'
 ```
 
-To login to this account go to the following url:
+Access ThunderHub at:
 
-```bash copy
+```
 http://localhost:3000/sso?token=1
 ```
 
-### Server Accounts
+---
 
-You can add accounts on the server by adding this parameter to the `.env` file:
+## Server Accounts
+
+Server accounts are defined in a YAML configuration file. Set the path in your environment:
 
 ```bash copy
-# -----------
-# Account Configs
-# -----------
-ACCOUNT_CONFIG_PATH = '/path/to/config/file.yaml' # i.e. '/data/thubConfig.yaml'
+ACCOUNT_CONFIG_PATH='/path/to/thubConfig.yaml'
 ```
 
-You must also add a YAML file at that location with the following format:
+### Basic Configuration
 
 ```yaml copy
-masterPassword: 'password' # Default password unless defined in account
+masterPassword: 'password'
 accounts:
   - name: 'Account 1'
     serverUrl: 'url:port'
@@ -116,163 +145,157 @@ accounts:
     serverUrl: 'url:port'
     macaroonPath: '/path/to/admin.macaroon'
     certificatePath: '/path/to/tls.cert'
-    # password: Leave without password and it will use the master password
-  - name: 'Account 3'
-    serverUrl: 'url:port'
-    macaroon: '0201056...' # HEX or Base64 encoded macaroon
-    certificate: '0202045c...' # HEX or Base64 encoded certificate
-    password: 'password for account 3'
+    # Uses masterPassword when no password is specified
 ```
 
-Notice you can specify either `macaroonPath` and `certificatePath` or `macaroon` and `certificate`.
-Note that the `port` in `serverUrl` should be the gRPC port that LND is listening on.
+You can provide credentials either as file paths (`macaroonPath`, `certificatePath`) or as inline HEX/Base64 strings (`macaroon`, `certificate`):
 
-#### Remote access
+```yaml copy
+accounts:
+  - name: 'Inline Credentials'
+    serverUrl: 'url:port'
+    macaroon: '0201056...'
+    certificate: '0202045c...'
+```
 
-If you want to access lnd remotely, the setting below should be added to `lnd.conf`.
+<Callout type="info">
+  The `serverUrl` port should be the LND gRPC port (default `10009`), not the
+  REST or litd HTTPS port.
+</Callout>
+
+### Password Security
+
+On first startup, ThunderHub hashes all `masterPassword` and account `password` values in the YAML file. The file is overwritten with the hashed values so that cleartext passwords are never stored on disk.
+
+### Remote Access
+
+To connect to a remote LND node, add the following to `lnd.conf`:
 
 ```bash copy
-# option 1) when accessing by IP
-tlsextraip=<externally-reachable-ip-address>
+# By IP address
+tlsextraip=<external-ip>
 rpclisten=0.0.0.0:10009
 
-# option 2) when accessing by domain
-tlsextradomain=<externally-reachable-domain-name>
+# By domain name
+tlsextradomain=<external-domain>
 rpclisten=0.0.0.0:10009
 ```
 
-#### Account with environment variables
+After changing TLS settings, restart LND to regenerate the certificate.
 
-It's possible to set different parts of the accounts based on environment variables.
+### Environment Variable Substitution
 
-You can use the following environment variables: `YML_ENV_1`, `YML_ENV_2`, `YML_ENV_3`, `YML_ENV_4` and fill your accounts in the following way:
+Account fields support placeholder substitution using `YML_ENV_1` through `YML_ENV_4`:
 
 ```yaml copy
 accounts:
   - name: '{YML_ENV_1}'
     serverUrl: '{YML_ENV_2}'
-    macaroon: 'macaroonforthisaccount'
+    macaroon: '{YML_ENV_3}'
     certificate: '{YML_ENV_4}'
 ```
 
-ThunderHub will take care of replacing the fields with the correct environment variables. The `{YML_ENV_[1-4]}` can only be used for fields inside the accounts. So for example using it for the `masterPassword` will not work.
+Set the corresponding environment variables and ThunderHub replaces the placeholders at startup. This only works for fields inside `accounts`, not for top-level fields like `masterPassword`.
 
-#### Account with LND directory
+### LND Directory Shorthand
 
-You can also specify the main LND directory and ThunderHub will look for the certificate and the macaroon in the default folders (based on the network).
-
-Default folders (assuming LND is at path `/lnd`):
-
-- Certificate: `/lnd/tls.cert`
-- Macaroon: `/lnd/data/chain/bitcoin/[mainnet | testnet | regtest]/admin.macaroon`
-
-The YAML file for this example would be:
-
-```yaml copy
-masterPassword: 'password' # Default password unless defined in account
-defaultNetwork: 'testnet' # Default network unless defined in account
-accounts:
-  - name: 'Account1'
-    serverUrl: 'url:port'
-    # network: Leave without network and it will use the default network
-    lndDir: '/path/to/lnd'
-  - name: 'Account2'
-    serverUrl: 'url:port'
-    network: 'mainnet'
-    lndDir: '/path/to/lnd'
-```
-
-If you don't specify `defaultNetwork` then `mainnet` is used as the default.
-
-**Please mind that `lndDir` property will not work in case of [Remote access](#remote-access)**
-
-#### Encrypted Macaroons
-
-You can use AES encrypted macaroons and have ThunderHub decrypt them and store them in memory. This allows you to have encrypted macaroons on your server and avoid having them in cleartext.
-
-Macaroons should be AES encrypted. This is an example for Javascript:
-
-```js copy
-const encrypted = CryptoJS.AES.encrypt(
-  'Hex or Base64 encoded Macaroon',
-  'Secret Passphrase'
-).toString();
-```
-
-You can use the `macaroonPath` field and let ThunderHub look for the file or directly use the `macaroon` field and paste your encrypted macaroon.
-
-You must let ThunderHub know that the macaroon is encrypted by adding an `encrypted` field to your account like such:
+Instead of specifying individual file paths, you can point to the LND data directory:
 
 ```yaml copy
 masterPassword: 'password'
+defaultNetwork: 'mainnet'
 accounts:
-  - name: 'Account 1'
+  - name: 'My Node'
     serverUrl: 'url:port'
-    macaroonPath: '/path/to/encrypted.admin.macaroon'
-    encrypted: true # This field is necessary
-  - name: 'Account 2'
+    lndDir: '/path/to/lnd'
+  - name: 'Testnet Node'
     serverUrl: 'url:port'
-    macaroon: 'EnCrYpTeD-MaCaRoOn'
-    encrypted: true # This field is necessary
+    lndDir: '/path/to/lnd'
+    network: 'testnet'
 ```
 
-To login you must use the same secret passphrase that you used to encrypt the macaroon.
+ThunderHub resolves paths automatically:
 
-#### Security
+- Certificate: `<lndDir>/tls.cert`
+- Macaroon: `<lndDir>/data/chain/bitcoin/<network>/admin.macaroon`
 
-On the first start of the server, the `masterPassword` and all account `password` fields will be **hashed** and the file will be overwritten with these new values to avoid having cleartext passwords on the server.
+If `defaultNetwork` is not set, `mainnet` is used.
 
-### Privacy Configs
+<Callout type="warning">
+  The `lndDir` shorthand does not work for remote access since the files must be
+  readable from the ThunderHub server.
+</Callout>
 
-**Prices and Fees**
-ThunderHub fetches fiat prices from [Blockchain.com](https://blockchain.info/ticker)'s api and bitcoin on chain fees from [Earn.com](https://bitcoinfees.earn.com/api/v1/fees/recommended)'s api.
+### Encrypted Macaroons
 
-If you want to deactivate these requests you can set `FETCH_PRICES=false` and `FETCH_FEES=false` in your `.env` file or manually change them inside the settings view of ThunderHub.
+You can store AES-encrypted macaroons and have ThunderHub decrypt them at runtime. This avoids keeping cleartext macaroons on disk.
 
-**LnMarkets**
-ThunderHub can connect to the LnMarkets API. You can disable this option by setting `DISABLE_LNMARKETS=true` in your `.env` file.
+Encrypt a macaroon (JavaScript example):
 
-**Links**
-ThunderHub shows you links for quick viewing of nodes by public key on [1ml.com](https://1ml.com/) and for viewing onchain transactions on [Blockchain.com](https://www.blockchain.com/).
+```js copy
+const encrypted = CryptoJS.AES.encrypt(
+  'HEX or Base64 encoded macaroon',
+  'secret passphrase'
+).toString();
+```
 
-If you don't want to show these links, you can set `DISABLE_LINKS=true` in your `.env` file.
+Reference the encrypted macaroon in your config:
 
-**Version Check**
-ThunderHub gets the latest available version from [Github](https://api.github.com/repos/apotdevin/thunderhub/releases/latest) and shows you a message if you are on an older version.
+```yaml copy
+accounts:
+  - name: 'Encrypted Account'
+    serverUrl: 'url:port'
+    macaroon: 'encrypted-macaroon-string'
+    encrypted: true
+```
 
-If you want to disable this option you can set `NO_VERSION_CHECK=true` in your `.env` file.
+The `encrypted: true` field is required. When logging in, use the same passphrase that was used to encrypt the macaroon.
 
-### Running on different base path
+---
 
-Adding a BASE_PATH will run the ThunderHub server on a different base path.
+## Privacy
+
+ThunderHub makes requests to the following external services by default. Each can be disabled individually.
+
+| Service                                           | Purpose                                       | Disable With             |
+| ------------------------------------------------- | --------------------------------------------- | ------------------------ |
+| [Mempool.space](https://mempool.space/)           | On-chain fee estimates                        | `FETCH_FEES=false`       |
+| Price API                                         | Fiat exchange rates                           | `FETCH_PRICES=false`     |
+| [GitHub](https://github.com/apotdevin/thunderhub) | Latest version check                          | `NO_VERSION_CHECK=true`  |
+| [LnMarkets](https://lnmarkets.com/)               | Trading integration                           | `DISABLE_LNMARKETS=true` |
+| External links                                    | Links to block explorers and node directories | `DISABLE_LINKS=true`     |
+
+These settings can also be changed from the Settings page within ThunderHub.
+
+---
+
+## Base Path
+
+To serve ThunderHub under a URL prefix (e.g. behind a reverse proxy):
 
 ```bash copy
-# -----------
-# Server Configs
-# -----------
-BASE_PATH = '[Base path where you want to have thunderhub running i.e. '/btcpay']' # Default: ''
+BASE_PATH='/thub'
 ```
 
-For example:
+<Callout type="warning">
+  `BASE_PATH` must be set **before** building the application.
+</Callout>
 
-- by default ThunderHub runs on `http://localhost:3000`
-- base path of `/thub` runs ThunderHub on `http://localhost:3000/thub`
+With this setting, ThunderHub is accessible at `http://localhost:3000/thub`.
 
-**You need to add this environment variable BEFORE building the application**
-
-There is a prebuilt [Docker](https://hub.docker.com/repository/docker/apotdevin/thunderhub) image with a preset `BASE_PATH=/thub` in case you need it and prefer not building your own Docker image.
+A prebuilt Docker image with `BASE_PATH=/thub` is available:
 
 ```bash copy
-# Normal docker image
-docker pull apotdevin/thunderhub:v0.11.1
-
-# Preset basePath docker image
-docker pull apotdevin/thunderhub:base-v0.11.1
+docker pull apotdevin/thunderhub:base-latest
 ```
 
-To build your own docker image with the `basePath` of your choice you can use `docker build --build-arg BASE_PATH='/thub' -t myOwnDockerImage .`
+To build a custom Docker image with your own base path:
 
-You can run ThunderHub behind a proxy with the following configuration (NGINX example):
+```bash copy
+docker build --build-arg BASE_PATH='/thub' -t thunderhub-custom .
+```
+
+### Reverse Proxy (NGINX)
 
 ```nginx copy
 location /thub {

@@ -1,87 +1,92 @@
-# **ThunderHub - Lightning Node Manager**
+# ThunderHub
 
 ![Home Screenshot](/assets/index_home.png)
 
-[![license](https://img.shields.io/github/license/DAVFoundation/captain-n3m0.svg?style=flat-square)](https://github.com/DAVFoundation/captain-n3m0/blob/master/LICENSE)
+[![license](https://img.shields.io/github/license/apotdevin/thunderhub.svg?style=flat-square)](https://github.com/apotdevin/thunderhub/blob/master/LICENSE)
 
 ## Introduction
 
-ThunderHub is an **open-source** LND node manager where you can manage and monitor your node on any device or browser. It allows you to take control of the lightning network with a simple and intuitive UX and the most up-to-date tech stack.
+ThunderHub is an open-source Lightning Network node manager. It provides a web-based interface to monitor and manage your LND or [Lightning Terminal (litd)](/litd) node from any device or browser.
 
 ## Integrations
 
-ThunderHub has been integrated into different services making it simpler for users to take advantage of it.
+ThunderHub is integrated into several popular node platforms:
 
-**BTCPay Server**
-ThunderHub is currently integrated into BTCPay for easier deployment. If you already have a BTCPay server and want to add ThunderHub or even want to start a BTCPay server from zero, be sure to check out this [tutorial](https://apotdevin.com/blog/thunderhub-btcpay).
-
-**Raspiblitz**
-For Raspiblitz users you can also get ThunderHub running by following this [gist](https://gist.github.com/openoms/8ba963915c786ce01892f2c9fa2707bc).
-
-**myNode**
-MyNode is one of the easiest ways to run a dedicated, easy to use, Bitcoin Node and Lightning Wallet. Now with ThunderHub and more of the best open source software around, myNode makes it easy, safe and secure to use Bitcoin and Lightning. [Website](https://mynodebtc.com/)
-
-**Voltage**
-To use the Lightning Network at it's full capacity it's a must to have your own node but this can come with a cost and require more technical skills. Voltage removes all these burdens and let's you quickly and easily deploy production ready nodes. Now with ThunderHub integrated as well, you get an awesome UI to manage it all. [Website](https://voltage.cloud/)
-
-**Umbrel**
-Running a bitcoin and lightning node might seem like a difficult, programming intensive job to accomplish. With Umbrel everything is simplified and put behind an awesome and easy to use UI. Now with an App Store included, you can, with the click of a button, add the ThunderHub interface to take full control of your node. [Website](https://getumbrel.com/)
+- **[BTCPay Server](https://apotdevin.com/blog/thunderhub-btcpay)** — Included as part of the BTCPay Server deployment stack.
+- **[Raspiblitz](https://gist.github.com/openoms/8ba963915c786ce01892f2c9fa2707bc)** — Available as an optional service on Raspiblitz nodes.
+- **[myNode](https://mynodebtc.com/)** — Bundled with the myNode software suite.
+- **[Voltage](https://voltage.cloud/)** — Available on Voltage's hosted Lightning node platform.
+- **[Umbrel](https://getumbrel.com/)** — Installable from the Umbrel App Store.
 
 ## Tech Stack
 
-This repository consists of a **NestJS** server that handles both the backend **Graphql Server** and the frontend **React App**. ThunderHub connects to your Lightning Network node by using the gRPC ports.
+ThunderHub is a full-stack TypeScript application with a NestJS backend serving a GraphQL API and a React frontend. It connects to Lightning Network nodes via gRPC.
 
-- NestJS
-- ReactJS
-- Typescript
-- Styled-Components
-- Apollo
-- Apollo-Server
-- GraphQL
-- Ln-Service
+- **Backend** — NestJS, GraphQL (Apollo Server), Drizzle ORM
+- **Frontend** — React, Vite, Tailwind CSS, Apollo Client
+- **Language** — TypeScript
 
 ## Features
 
 ### Monitoring
 
-- Overview of current and pending balance for the Lightning and Bitcoin wallets.
-- URI strings for the node (Onion public uri also if available)
-- Invoice and Payment graph.
-- Liquidity report with total remote and local lightning balance.
-- Forwarded payments graph and the routes used for these payments.
-- Complete network info.
-- View open/pending/closed channels and how balanced they are.
-- View channel base and rate fees.
-- View all transactions.
-- View all forwarded payments.
-- View all chain transactions.
-- View all unspent UTXOS.
+- Balance overview for Lightning and on-chain wallets (current and pending).
+- Node URI strings including Tor onion addresses.
+- Invoice, payment, and forwarding graphs.
+- Liquidity report showing total remote and local channel balance.
+- Channel list with balance indicators (open, pending, and closed).
+- Fee policies per channel (base fee and fee rate).
+- Transaction history, chain transactions, and UTXO list.
+- Network information overview.
 
 ### Management
 
-- LNURL integration: ln-pay and ln-withdraw are available. Ln-auth soon.
-- Send and Receive Lightning payments.
-- Send and Receive Bitcoin payments.
-- Decode lightning payment requests.
+- Send and receive Lightning payments.
+- Send and receive on-chain Bitcoin.
 - Open and close channels.
-- Balance your channels through circular payments ([check out the tutorial](https://apotdevin.com/blog/thunderhub-balancing)).
-- Update your all your channels fees or individual ones.
-- Backup, verify and recover all your channels.
+- Decode payment requests.
+- Update channel fees (individually or in bulk).
+- Channel rebalancing via circular payments.
+- Channel backup, verification, and recovery.
 - Sign and verify messages.
+- LNURL support (lnurl-pay, lnurl-withdraw).
+- Macaroon management.
 
-### Visual
+### Taproot Assets
 
-- Responsive UI for any device. Mobile, Tablet or Desktop.
-- Light, Dark and Night mode.
-- Check values in Bitcoin, Satoshis or Fiat.
+- Mint, burn, and transfer Taproot Assets.
+- Create invoices denominated in Taproot Assets.
+- Asset universe management and federation.
+- Trading offers for asset exchange.
+- View asset balances and transfer history.
+
+### Swaps
+
+- Submarine swaps and reverse swaps via [Boltz](https://boltz.exchange/).
+
+### Security
+
+- Two-factor authentication (2FA) with TOTP.
+- AES-encrypted macaroon support.
+- Password hashing (cleartext passwords are never stored).
+- SSO cookie-based authentication.
+
+### Interface
+
+- Responsive design for mobile, tablet, and desktop.
+- Light and dark themes.
+- Display values in satoshis, BTC, or fiat currencies.
+- Customizable dashboard layout.
 
 ### Accounts
 
-- Connect to your node with **HEX/Base64 strings** or by passing the **file locations** of the macaroons and certificate.
-- Manage however many nodes you want.
-- Use a master password or individual passwords for each account.
-- Passwords are hashed to avoid having them in cleartext form.
+- Connect via macaroon file paths or HEX/Base64 strings.
+- Manage multiple nodes from a single instance.
+- Master password or per-account passwords.
+- Optional database-backed user accounts with team support (SQLite or PostgreSQL).
 
 ### Deployment
 
-- Docker images for easier deployment.
+- Docker images available on [Docker Hub](https://hub.docker.com/repository/docker/apotdevin/thunderhub).
+- Reverse proxy support with configurable base path.
+- Tor proxy support for outbound requests.

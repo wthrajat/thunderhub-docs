@@ -1,15 +1,15 @@
 export default {
-  index: '👋 Intro',
-  setup: '🛠️ Setup',
-  installation: '🌩️ Installation',
-  litd: '⚡ Lightning Terminal (LiTD) Setup',
+  index: 'Introduction',
+  installation: 'Installation',
+  setup: 'Configuration',
+  litd: 'Lightning Terminal (LiTD)',
   website: {
-    title: 'ThunderHub.io ↗',
+    title: 'ThunderHub.io',
     type: 'page',
     href: 'https://thunderhub.io/',
   },
   twitter: {
-    title: 'Twitter ↗',
+    title: 'Twitter',
     type: 'page',
     href: 'https://twitter.com/thunderhubio',
   },
