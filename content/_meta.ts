@@ -3,6 +3,7 @@ export default {
   installation: 'Installation',
   setup: 'Configuration',
   litd: 'Lightning Terminal (LiTD)',
+  'agents-md': 'AGENTS.md',
   website: {
     title: 'ThunderHub.io',
     type: 'page',
