@@ -6,11 +6,21 @@ This guide covers connecting a self-hosted ThunderHub instance to a [Voltage](ht
 
 Works with both **Mainnet** and **Mutinynet** (signet-based testnet) nodes on Voltage.
 
+<Callout type="warning">
+  Voltage offers a built-in ThunderHub instance for each node, but it currently
+  runs an older version of ThunderHub (**v0.13.22**) which does **not** support
+  Taproot Assets or the `litd` connection type. This guide is for running your
+  own ThunderHub instance (**v0.15.5+**) to get full litd and Taproot Assets
+  support. Once Voltage updates their hosted ThunderHub, you can switch to using
+  their instance if you prefer.
+</Callout>
+
 ## Prerequisites
 
 - A Voltage account ([app.voltage.cloud](https://app.voltage.cloud/login))
 - A Voltage Lightning node (Standard tier or above)
 - [Docker](https://docs.docker.com/get-docker/) installed (for running ThunderHub)
+- ThunderHub [v0.15.5](https://github.com/apotdevin/thunderhub/releases/tag/v0.15.5) or later (the `latest` Docker tag works)
 
 ## 1. Create a Node on Voltage
 
@@ -49,7 +59,7 @@ Find your node's API endpoint on the node details page. The format is:
   configure a TLS certificate.
 </Callout>
 
-### Superadmin Macaroon
+### Superadmin Macaroon (for Taproot Assets)
 
 ![Macaroon Bakery](/assets/voltage-macaroon.png)
 
