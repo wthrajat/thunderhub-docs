@@ -2,7 +2,7 @@ import { Callout, Tabs } from 'nextra/components';
 
 # Connect ThunderHub to a Voltage LiTD Node
 
-This guide covers connecting a self-hosted ThunderHub instance to a [Voltage](https://voltage.cloud) Lightning node. Voltage nodes run litd under the hood, so ThunderHub can connect using the `litd` account type to get full node management including Taproot Assets support.
+This guide covers connecting a self-hosted ThunderHub instance to a [Voltage](https://voltage.cloud) Lightning node. Voltage nodes run litd under the hood, so ThunderHub can connect using the `litd` account type to get full node management including [Taproot Assets](https://docs.lightning.engineering/the-lightning-network/taproot-assets) support.
 
 Works with both **Mainnet** and **Mutinynet** (signet-based testnet) nodes on Voltage.
 
@@ -14,9 +14,10 @@ Works with both **Mainnet** and **Mutinynet** (signet-based testnet) nodes on Vo
 
 ## 1. Create a Node on Voltage
 
-If you don't have a node yet:
+If you don't have a node yet, follow these steps to create one on Voltage: <br />
+![Voltage Dashboard](/assets/voltage-new-node.png)
 
-1. Log into [app.voltage.cloud](https://app.voltage.cloud/login) and click **Create Node** → **Lightning Node**.
+1. Log into [app.voltage.cloud](https://app.voltage.cloud/login) and click **New Node** → **Standard/Professional Node**.
 2. Choose a network: **Mainnet** or **Mutinynet**.
 3. Enter a node name and set an unlock password.
 4. Wait for the node to deploy (~2 minutes).
@@ -24,7 +25,7 @@ If you don't have a node yet:
 <Callout type="info">
   Mutinynet is a signet-based test environment — channels open in ~30 seconds
   and you can get free test coins from the Voltage dashboard. It's ideal for
-  testing Taproot Assets before moving to mainnet.
+  testing before moving to mainnet.
 </Callout>
 
 ## 2. Get Your Connection Details
@@ -32,6 +33,8 @@ If you don't have a node yet:
 You need two pieces of information from the Voltage dashboard:
 
 ### Server URL
+
+![Server URL](/assets/voltage-api-endpoint.png)
 
 Find your node's API endpoint on the node details page. The format is:
 
@@ -46,11 +49,9 @@ Find your node's API endpoint on the node details page. The format is:
   configure a TLS certificate.
 </Callout>
 
-Here is a screenshot of where to find the server URL on the Voltage dashboard:
-
-![Server URL](/assets/voltage-api-endpoint.png)
-
 ### Superadmin Macaroon
+
+![Macaroon Bakery](/assets/voltage-macaroon.png)
 
 1. Navigate to your node's page on the Voltage dashboard.
 2. Go to **Manage Access** → **Macaroon Bakery**.
@@ -62,10 +63,6 @@ Here is a screenshot of where to find the server URL on the Voltage dashboard:
   functionality. The standard admin macaroon will work for basic LND operations
   but won't enable Taproot Assets features.
 </Callout>
-
-Here is a screenshot of the Macaroon Bakery on the Voltage dashboard:
-
-![Macaroon Bakery](/assets/voltage-macaroon.png)
 
 ## 3. Configure ThunderHub
 
@@ -120,6 +117,7 @@ accounts:
 
 Key differences from a standard LND config:
 
+- **Macaroon path** — Ensure the path inside the container matches where you downloaded the macaroon file.
 - **`type: litd`** — tells ThunderHub to use the litd connection mode.
 - **No `certificatePath`** — Voltage uses CA-signed certificates, so no custom TLS cert is needed.
 - **Port 443** — Voltage proxies the connection over standard HTTPS.
