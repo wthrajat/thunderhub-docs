@@ -1,0 +1,171 @@
+import { Callout, Tabs } from 'nextra/components';
+
+# Connect ThunderHub to a Voltage LiTD Node
+
+This guide covers connecting a self-hosted ThunderHub instance to a [Voltage](https://voltage.cloud) Lightning node. Voltage nodes run litd under the hood, so ThunderHub can connect using the `litd` account type to get full node management including Taproot Assets support.
+
+Works with both **Mainnet** and **Mutinynet** (signet-based testnet) nodes on Voltage.
+
+## Prerequisites
+
+- A Voltage account ([app.voltage.cloud](https://app.voltage.cloud/login))
+- A Voltage Lightning node (Standard tier or above)
+- [Docker](https://docs.docker.com/get-docker/) installed (for running ThunderHub)
+
+## 1. Create a Node on Voltage
+
+If you don't have a node yet:
+
+1. Log into [app.voltage.cloud](https://app.voltage.cloud/login) and click **Create Node** → **Lightning Node**.
+2. Choose a network: **Mainnet** or **Mutinynet**.
+3. Enter a node name and set an unlock password.
+4. Wait for the node to deploy (~2 minutes).
+
+<Callout type="info">
+  Mutinynet is a signet-based test environment — channels open in ~30 seconds
+  and you can get free test coins from the Voltage dashboard. It's ideal for
+  testing Taproot Assets before moving to mainnet.
+</Callout>
+
+## 2. Get Your Connection Details
+
+You need two pieces of information from the Voltage dashboard:
+
+### Server URL
+
+Find your node's API endpoint on the node details page. The format is:
+
+| Network   | URL Pattern                       |
+| --------- | --------------------------------- |
+| Mainnet   | `<node-name>.m.voltageapp.io:443` |
+| Mutinynet | `<node-name>.u.voltageapp.io:443` |
+
+<Callout type="info">
+  The port is **443** (standard HTTPS), not 10009 or 8443. Voltage terminates
+  TLS with a CA-signed certificate, so you do **not** need to download or
+  configure a TLS certificate.
+</Callout>
+
+Here is a screenshot of where to find the server URL on the Voltage dashboard:
+
+![Server URL](/assets/voltage-api-endpoint.png)
+
+### Superadmin Macaroon
+
+1. Navigate to your node's page on the Voltage dashboard.
+2. Go to **Manage Access** → **Macaroon Bakery**.
+3. Bake and download a **superadmin macaroon**.
+4. Save the file to a known location on the machine running ThunderHub (e.g., `./voltage/superadmin.macaroon`).
+
+<Callout type="warning">
+  You need a **superadmin** macaroon (not just admin) to access Taproot Assets
+  functionality. The standard admin macaroon will work for basic LND operations
+  but won't enable Taproot Assets features.
+</Callout>
+
+Here is a screenshot of the Macaroon Bakery on the Voltage dashboard:
+
+![Macaroon Bakery](/assets/voltage-macaroon.png)
+
+## 3. Configure ThunderHub
+
+Create a `thubConfig.yaml` file:
+
+<Tabs items={['Mainnet', 'Mutinynet', 'Both']}>
+
+<Tabs.Tab>
+
+```yaml copy
+masterPassword: 'your-secure-password'
+accounts:
+  - name: 'Voltage Mainnet'
+    type: litd
+    serverUrl: '<node-name>.m.voltageapp.io:443'
+    macaroonPath: '/data/voltage/superadmin.macaroon'
+```
+
+</Tabs.Tab>
+
+<Tabs.Tab>
+
+```yaml copy
+masterPassword: 'your-secure-password'
+accounts:
+  - name: 'Voltage Mutinynet'
+    type: litd
+    serverUrl: '<node-name>.u.voltageapp.io:443'
+    macaroonPath: '/data/voltage/superadmin.macaroon'
+```
+
+</Tabs.Tab>
+
+<Tabs.Tab>
+
+```yaml copy
+masterPassword: 'your-secure-password'
+accounts:
+  - name: 'Voltage Mainnet'
+    type: litd
+    serverUrl: '<mainnet-node-name>.m.voltageapp.io:443'
+    macaroonPath: '/data/voltage/mainnet-superadmin.macaroon'
+  - name: 'Voltage Mutinynet'
+    type: litd
+    serverUrl: '<mutinynet-node-name>.u.voltageapp.io:443'
+    macaroonPath: '/data/voltage/mutinynet-superadmin.macaroon'
+```
+
+</Tabs.Tab>
+
+</Tabs>
+
+Key differences from a standard LND config:
+
+- **`type: litd`** — tells ThunderHub to use the litd connection mode.
+- **No `certificatePath`** — Voltage uses CA-signed certificates, so no custom TLS cert is needed.
+- **Port 443** — Voltage proxies the connection over standard HTTPS.
+
+## 4. Run ThunderHub
+
+```bash copy
+docker run -d \
+  --name thunderhub \
+  -p 3000:3000 \
+  -e ACCOUNT_CONFIG_PATH=/data/thubConfig.yaml \
+  -v /path/to/thubConfig.yaml:/data/thubConfig.yaml:ro \
+  -v /path/to/voltage:/data/voltage:ro \
+  apotdevin/thunderhub:latest
+```
+
+Replace `/path/to/thubConfig.yaml` with the actual path to your config file, and `/path/to/voltage` with the directory containing your downloaded macaroon(s).
+
+### Docker Compose
+
+```yaml copy
+services:
+  thunderhub:
+    image: apotdevin/thunderhub:latest
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      - ACCOUNT_CONFIG_PATH=/data/thubConfig.yaml
+    volumes:
+      - ./thubConfig.yaml:/data/thubConfig.yaml:ro
+      - ./voltage:/data/voltage:ro
+```
+
+```bash copy
+docker compose up -d
+```
+
+Open `http://localhost:3000` and log in with the `masterPassword` from your config file.
+
+![Taproot Assets](/assets/thunderhub-taproot-assets.png)
+
+## Troubleshooting
+
+- **Connection refused** — Verify your node is running on the Voltage dashboard. Stopped nodes are not reachable.
+- **Invalid macaroon** — Make sure you downloaded a **superadmin** macaroon, not a read-only or standard admin macaroon. Re-bake from the Macaroon Bakery if needed.
+- **Wrong server URL** — Double-check the node name and network suffix (`.m.` for mainnet, `.u.` for mutinynet). The port must be `443`.
+- **Taproot Assets not showing** — Ensure `type: litd` is set in the config. Without it, ThunderHub connects as a standard LND node and Taproot Assets features are hidden.
+- **Volume mount issues** — Verify the macaroon file path inside the container matches the `macaroonPath` in your config. The Docker volume mount maps your local directory to the container path.
