@@ -19,8 +19,12 @@ Works with both **Mainnet** and **Mutinynet** (signet-based testnet) nodes on Vo
 
 - A Voltage account ([app.voltage.cloud](https://app.voltage.cloud/login))
 - A Voltage Lightning node (Standard tier or above)
-- [Docker](https://docs.docker.com/get-docker/) installed (for running ThunderHub)
 - ThunderHub [v0.15.5](https://github.com/apotdevin/thunderhub/releases/tag/v0.15.5) or later (the `latest` Docker tag works)
+- [Docker](https://docs.docker.com/get-docker/) installed (for running ThunderHub using Docker)
+  <Callout type="info">
+    You can also run ThunderHub using Node.js if you prefer, but Docker is
+    simpler for most users
+  </Callout>
 
 ## 1. Create a Node on Voltage
 
@@ -31,6 +35,8 @@ If you don't have a node yet, follow these steps to create one on Voltage: <br /
 2. Choose a network: **Mainnet** or **Mutinynet**.
 3. Enter a node name and set an unlock password.
 4. Wait for the node to deploy (~2 minutes).
+5. Once the node is running, enable Taproot Assets in the node settings. See the screenshot below for the toggle location.
+   ![Enable Taproot Assets](/assets/voltage-ta.png)
 
 <Callout type="info">
   Mutinynet is a signet-based test environment — channels open in ~30 seconds
@@ -69,9 +75,8 @@ Find your node's API endpoint on the node details page. The format is:
 4. Save the file to a known location on the machine running ThunderHub (e.g., `./voltage/superadmin.macaroon`).
 
 <Callout type="warning">
-  You need a **superadmin** macaroon (not just admin) to access Taproot Assets
-  functionality. The standard admin macaroon will work for basic LND operations
-  but won't enable Taproot Assets features.
+  You need a **superadmin** macaroon (not just admin) to access all
+  functionality offered by litd.
 </Callout>
 
 ## 3. Configure ThunderHub
