@@ -14,17 +14,9 @@ ThunderHub is integrated into several popular node platforms:
 
 - **[BTCPay Server](https://apotdevin.com/blog/thunderhub-btcpay)** — Included as part of the BTCPay Server deployment stack.
 - **[Raspiblitz](https://gist.github.com/openoms/8ba963915c786ce01892f2c9fa2707bc)** — Available as an optional service on Raspiblitz nodes.
-- **[myNode](https://mynodebtc.com/)** — Bundled with the myNode software suite.
+- **[myNode](https://mynodebtc.github.io/lightning/thunderhub.html)** — Bundled with the myNode software suite.
 - **[Voltage](https://docs.voltage.cloud/thunderhub-guide)** — Available on Voltage's hosted Lightning node platform.
 - **[Umbrel](https://getumbrel.com/)** — Installable from the Umbrel App Store.
-
-## Tech Stack
-
-ThunderHub is a full-stack TypeScript application with a NestJS backend serving a GraphQL API and a React frontend. It connects to Lightning Network nodes via gRPC.
-
-- **Backend** — NestJS, GraphQL (Apollo Server), Drizzle ORM
-- **Frontend** — React, Vite, Tailwind CSS, Apollo Client
-- **Language** — TypeScript
 
 ## Features
 
@@ -84,6 +76,14 @@ ThunderHub is a full-stack TypeScript application with a NestJS backend serving 
 - Manage multiple nodes from a single instance.
 - Master password or per-account passwords.
 - Optional database-backed user accounts with team support (SQLite or PostgreSQL).
+
+## Tech Stack
+
+ThunderHub is a full-stack TypeScript application with a NestJS backend serving a GraphQL API and a React frontend. It connects to Lightning Network nodes via gRPC.
+
+- **Backend** — NestJS, GraphQL (Apollo Server), Drizzle ORM
+- **Frontend** — React, Vite, Tailwind CSS, Apollo Client
+- **Language** — TypeScript
 
 ### Deployment
 
