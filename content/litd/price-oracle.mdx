@@ -1,0 +1,73 @@
+import { Callout } from 'nextra/components';
+
+# Price Oracle Configuration
+
+When trading [Taproot Assets](https://docs.lightning.engineering/the-lightning-network/taproot-assets) (such as [USDTL](https://www.speed.app/usdtl/)) through ThunderHub or [RailsX](https://amboss.tech/railsx), your litd node performs **sanity checks** on asset pricing during channel negotiations. These checks rely on a **[price oracle](https://www.cube.exchange/what-is/price-oracle)** — an external service that provides exchange rate information for Taproot Assets.
+
+Your node must be configured with a price oracle that knows about the assets you want to trade. Without this, the node will reject trades because it cannot verify that the pricing is reasonable.
+
+## Amboss Price Oracle (Recommended)
+
+The [Amboss](https://amboss.tech) price oracle knows about all assets available for trading in ThunderHub and RailsX, including USDTL. Add the following to your `lit.conf`:
+
+**Mainnet:**
+
+```ini copy
+taproot-assets.experimental.rfq.priceoracleaddress=rfqrpc://price-oracle.amboss.tech:443
+```
+
+**Testnet / Mutinynet:**
+
+```ini copy
+taproot-assets.experimental.rfq.priceoracleaddress=rfqrpc://price-oracle-dev.amboss.tech:443
+```
+
+<Callout type="info">
+  The Amboss price oracle is kept in sync with all assets supported for trading
+  on ThunderHub and RailsX. This is the simplest path to get started.
+</Callout>
+
+## Disable Sanity Checks
+
+If you prefer not to use a price oracle, you can disable the pricing sanity checks entirely. Add the following to your `lit.conf`:
+
+```ini copy
+taproot-assets.experimental.rfq.skipacceptquotepricecheck=true
+```
+
+<Callout type="warning">
+  Disabling sanity checks means your node will accept trades without verifying
+  that the asset pricing is reasonable. Only do this if you understand the risks
+  and are comfortable with the trade-offs.
+</Callout>
+
+You can learn more about TA RFQs here: [TA RFQs Documentation](https://docs.lightning.engineering/lightning-network-tools/taproot-assets/rfq).
+
+## Third-Party Price Oracle
+
+You can point your node to any price oracle that implements the `PriceOracle` RPC interface and knows about the assets you want to trade:
+
+```ini copy
+taproot-assets.experimental.rfq.priceoracleaddress=rfqrpc://your-oracle-host:port
+```
+
+<Callout type="info">
+  The oracle must know about every asset you intend to trade. If it does not
+  recognize an asset, trades involving that asset will fail.
+</Callout>
+
+## Restart litd
+
+After updating `lit.conf`, restart litd for the changes to take effect:
+
+```bash copy
+sudo systemctl restart litd
+```
+
+## Verify
+
+Check the litd logs to confirm the price oracle is connected:
+
+```bash copy
+journalctl -u litd -f | grep -i "price oracle"
+```
