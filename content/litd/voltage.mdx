@@ -37,6 +37,11 @@ If you don't have a node yet, follow these steps to create one on Voltage: <br /
 4. Wait for the node to deploy (~2 minutes).
 5. Once the node is running, enable Taproot Assets in the node settings. See the screenshot below for the toggle location.
    ![Enable Taproot Assets](/assets/voltage-ta.png)
+6. Configure a **price oracle** so your node can trade Taproot Assets. In **Node Settings**, set the price oracle URL to:
+   - **Mainnet:** `rfqrpc://price-oracle.amboss.tech:443`
+   - **Mutinynet:** `rfqrpc://price-oracle-dev.amboss.tech:443`
+
+   See the [Price Oracle](/litd/price-oracle) guide for more details and alternative configurations.
 
 <Callout type="info">
   Mutinynet is a signet-based test environment — channels open in ~30 seconds
