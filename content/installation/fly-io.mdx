@@ -24,14 +24,27 @@ The post-deploy steps (first-run setup, custom domain, updating) are the same fo
 
 ### 1. Install `flyctl`
 
+{/* prettier-ignore-start */}
+
 <Tabs items={['macOS', 'Linux', 'Windows']}>
-  <Tabs.Tab>```bash copy brew install flyctl ```</Tabs.Tab>
-  <Tabs.Tab>```bash copy curl -L https://fly.io/install.sh | sh ```</Tabs.Tab>
   <Tabs.Tab>
-    ```powershell copy pwsh -Command "iwr https://fly.io/install.ps1 -useb |
-    iex" ```
+    ```bash copy
+    brew install flyctl
+    ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+    ```bash copy
+    curl -L https://fly.io/install.sh | sh
+    ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+    ```powershell copy
+    pwsh -Command "iwr https://fly.io/install.ps1 -useb | iex"
+    ```
   </Tabs.Tab>
 </Tabs>
+
+{/* prettier-ignore-end */}
 
 Sign in:
 
@@ -90,6 +103,8 @@ After this finishes, Fly has registered your app and updated `fly.toml` with the
 
 ThunderHub encrypts every node credential it stores using AES-256-GCM. Generate a 32-byte key and set it as a Fly secret:
 
+{/* prettier-ignore-start */}
+
 <Tabs items={['macOS / Linux', 'Windows (PowerShell)']}>
   <Tabs.Tab>
     ```bash copy
@@ -103,6 +118,8 @@ ThunderHub encrypts every node credential it stores using AES-256-GCM. Generate 
     ```
   </Tabs.Tab>
 </Tabs>
+
+{/* prettier-ignore-end */}
 
 <Callout type="warning">
   **Save this command's output if you'd like a backup.** If you ever lose this
@@ -180,6 +197,8 @@ Before the first deploy, set the `DB_ENCRYPTION_KEY` secret. In the dashboard's 
 
 Generate one locally and paste the output:
 
+{/* prettier-ignore-start */}
+
 <Tabs items={['macOS / Linux', 'Windows (PowerShell)']}>
   <Tabs.Tab>
     ```bash copy
@@ -192,6 +211,8 @@ Generate one locally and paste the output:
     ```
   </Tabs.Tab>
 </Tabs>
+
+{/* prettier-ignore-end */}
 
 <Callout type="warning">
   **Save this value somewhere safe.** If you ever lose it, every node credential
